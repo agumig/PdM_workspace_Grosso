@@ -83,17 +83,17 @@ int main(void)
 	  if(delayRead(&delayLed1))
 	  {
 		  BSP_LED_Toggle(LED1);
-		  delayInit(&delayLed1, DELAY_LED_1);	// or delayLed1->running = false
+		  delayLed1->running = false;	// At the next delayRead, it will be runned again.
 	  }
 	  if(delayRead(&delayLed2))
 	  {
 		  BSP_LED_Toggle(LED2);
-		  delayInit(&delayLed2, DELAY_LED_2);	// or delayLed2->running = false
+		  delayLed2->running = false;	// At the next delayRead, it will be runned again.
 	  }
 	  if(delayRead(&delayLed3))
 	  {
 		  BSP_LED_Toggle(LED3);
-		  delayInit(&delayLed3, DELAY_LED_3);	// or delayLEd3->running = false
+		  delayLed3->running = false;	// At the next delayRead, it will be runned again.
 	  }
   }
 }
@@ -121,7 +121,7 @@ bool_t delayRead( delay_t * delay )
 
 	if(delay->running)
 	{
-		if(delay->duration <= (HAL_GetTick() - delay->startTime))
+		if((HAL_GetTick() - delay->startTime) >= delay->duration)
 			returnValue = true;
 		else
 			returnValue = false;

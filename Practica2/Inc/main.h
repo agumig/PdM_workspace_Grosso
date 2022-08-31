@@ -56,7 +56,7 @@
 #define DELAY_LED_2		500		//	[ms] time delay for led 2
 #define DELAY_LED_3		1000	//	[ms] time delay for led 3
 
-/* Variables */
+/* Delay variables */
 typedef uint32_t tick_t;
 typedef bool bool_t;
 
