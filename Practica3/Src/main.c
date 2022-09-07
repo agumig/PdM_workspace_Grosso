@@ -111,9 +111,10 @@ int main(void)
 			switch(sequence)
 			{
 			case SEQUENCE_1:
+				BSP_LED_Toggle(sequenceOne[i]);
 				if(state == LED_ON)
 				{
-					if(i < LED_CANT)
+					if(i < LED_CANT - 1)
 						i++;
 					else
 						i = 0;
@@ -123,12 +124,12 @@ int main(void)
 				{
 					state = LED_ON;
 				}
-				BSP_LED_Toggle(sequenceOne[i]);
 				break;
 			case SEQUENCE_2:
+				BSP_LED_Toggle(sequenceTwo[i]);
 				if(state == LED_ON)
 				{
-					if(i < LED_CANT)
+					if(i < LED_CANT - 1)
 						i++;
 					else
 						i = 0;
@@ -138,7 +139,6 @@ int main(void)
 				{
 					state = LED_ON;
 				}
-				BSP_LED_Toggle(sequenceTwo[i]);
 				break;
 			default:
 				break;
@@ -146,6 +146,12 @@ int main(void)
 		}
 	}
 }
+/**
+ * @brief   Turn off leds number 1, 2 and 3
+ * @param	None
+ * @return  None
+ */
+
 static void Leds_Turn_Off (void)
 {
 	BSP_LED_Off(LED1);

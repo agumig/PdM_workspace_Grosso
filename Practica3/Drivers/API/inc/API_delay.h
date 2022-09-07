@@ -3,7 +3,7 @@
 #define __API_DELAY_H_
 
 /* Delay values*/
-#define DELAY_LEDS		200		// [ms] time delay for leds
+#define DELAY_LEDS		200		// 	[ms] time delay for leds
 #define DELAY_LED_1		100		//	[ms] time delay for led 1
 #define DELAY_LED_2		500		//	[ms] time delay for led 2
 #define DELAY_LED_3		1000	//	[ms] time delay for led 3
