@@ -51,28 +51,14 @@
 #define USARTx_RX_GPIO_PORT              GPIOD
 #define USARTx_RX_AF                     GPIO_AF7_USART3
 
-/* Delay values*/
-#define DELAY_LED_1		100		//	[ms] time delay for led 1
-#define DELAY_LED_2		500		//	[ms] time delay for led 2
-#define DELAY_LED_3		1000	//	[ms] time delay for led 3
-#define MAX_DELAY		30000	//	[ms] max time for delay
+#define LED_CANT 	3
 
-/* Delay variables */
-typedef uint32_t tick_t;
-typedef bool bool_t;
+/* Sequences for toggling leds */
+#define SEQUENCE_1						1
+#define SEQUENCE_2						2
 
-typedef struct{
-   tick_t startTime;
-   tick_t duration;
-   bool_t running;
-} delay_t;
-
-
-/*  Prototypes */
-void delayInit( delay_t * delay, tick_t duration );
-bool_t delayRead( delay_t * delay );
-void delayWrite( delay_t * delay, tick_t duration );
-
+#define LED_OFF							0
+#define LED_ON							1
 
 #endif /* __MAIN_H */
 

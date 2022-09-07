@@ -20,6 +20,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "API_delay.h"
 
 /** @addtogroup STM32F4xx_HAL_Examples
  * @{
@@ -38,6 +39,7 @@ UART_HandleTypeDef UartHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 
+static void Leds_Turn_Off(void);
 static void SystemClock_Config(void);
 static void Error_Handler(void);
 
@@ -50,7 +52,11 @@ static void Error_Handler(void);
  */
 int main(void)
 {
-	delay_t delayLed1, delayLed2, delayLed3;
+	delay_t delayLeds;
+	uint8_t sequenceOne[LED_CANT] = {LED1,LED2,LED3};
+	uint8_t sequenceTwo[LED_CANT] = {LED1,LED3,LED2};
+	uint8_t i = 0, state = LED_OFF, sequence = SEQUENCE_1;
+
 
 	/* STM32F4xx HAL library initialization:
        - Configure the Flash prefetch
@@ -72,98 +78,80 @@ int main(void)
 	BSP_LED_Init(LED2);
 	BSP_LED_Init(LED3);
 
+
+	/* Initialize BSP PB for BUTTON_USER */
+	BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
+
 	/* Initialize struct delay for leds */
-	delayInit(&delayLed1, DELAY_LED_1);
-	delayInit(&delayLed2, DELAY_LED_2);
-	delayInit(&delayLed3, DELAY_LED_3);
+	delayInit(&delayLeds, DELAY_LEDS);
 
 	/* Infinite loop */
 	while (1)
 	{
-		if(delayRead(&delayLed1))
-		{
-			BSP_LED_Toggle(LED1);
+		if(BSP_PB_GetState(BUTTON_USER))
+		{	/* Change sequence */
+			if(sequence == SEQUENCE_1)
+			{
+				sequence = SEQUENCE_2;
+				i = 0;
+				state = LED_OFF;
+				Leds_Turn_Off();
+			}
+			else
+			{
+				sequence = SEQUENCE_1;
+				i = 0;
+				state = LED_OFF;
+				Leds_Turn_Off();
+			}
 		}
-		if(delayRead(&delayLed2))
+
+		if(delayRead(&delayLeds))
 		{
-			BSP_LED_Toggle(LED2);
-		}
-		if(delayRead(&delayLed3))
-		{
-			BSP_LED_Toggle(LED3);
+			switch(sequence)
+			{
+			case SEQUENCE_1:
+				if(state == LED_ON)
+				{
+					if(i < LED_CANT)
+						i++;
+					else
+						i = 0;
+					state = LED_OFF;
+				}
+				else
+				{
+					state = LED_ON;
+				}
+				BSP_LED_Toggle(sequenceOne[i]);
+				break;
+			case SEQUENCE_2:
+				if(state == LED_ON)
+				{
+					if(i < LED_CANT)
+						i++;
+					else
+						i = 0;
+					state = LED_OFF;
+				}
+				else
+				{
+					state = LED_ON;
+				}
+				BSP_LED_Toggle(sequenceTwo[i]);
+				break;
+			default:
+				break;
+			}
 		}
 	}
 }
-
-/**
- * @brief   Initialize the delay structure
- * @param   delay 		Pointer to the delay structure
- * @param	duration 	Delay in milliseconds
- * @return  None
- */
-void delayInit( delay_t * delay, tick_t duration )
+static void Leds_Turn_Off (void)
 {
-	if(delay != NULL && 0 < duration && duration < MAX_DELAY)
-	{
-		delay->running = false;
-		delay->duration = duration;
-	}
-	else
-	{
-		while(1);
-	}
+	BSP_LED_Off(LED1);
+	BSP_LED_Off(LED2);
+	BSP_LED_Off(LED3);
 }
-
-/**
- * @brief   Read the delay state
- * @param   delay 		Pointer to the delay structure
- * @return  True if the delay happened, false if not.
- */
-bool_t delayRead( delay_t * delay )
-{
-	bool_t returnValue = false;
-
-	if(delay == NULL)
-		while(1);
-
-	if(delay->running)
-	{
-		if((HAL_GetTick() - delay->startTime) >= delay->duration)
-		{
-			delay->running = false;		// At the next delayRead, it will be runned again.
-			returnValue = true;
-
-		}
-		else
-			returnValue = false;
-	}
-	else
-	{
-		delay->startTime = HAL_GetTick();
-		delay->running = true;
-	}
-
-	return returnValue;
-}
-
-/**
- * @brief   Change the delay value
- * @param   delay 		Pointer to the delay structure
- * @param	duration 	Delay in milliseconds
- * @return  None
- */
-void delayWrite( delay_t * delay, tick_t duration )
-{
-	if(delay != NULL && 0 < duration && duration < MAX_DELAY)
-	{
-		delay->duration = duration;
-	}
-	else
-	{
-		while(1);
-	}
-}
-
 
 /**
  * @brief  System Clock Configuration
