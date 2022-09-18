@@ -1,29 +1,54 @@
+/*******************************************************************************
+ * Includes
+ ******************************************************************************/
 #include "API_debounce.h"
 
-typedef enum{
+/*******************************************************************************
+ * Private Typedef
+ ******************************************************************************/
+typedef enum{	// States of Fine State Machine
 BUTTON_UP,
 BUTTON_FALLING,
 BUTTON_DOWN,
 BUTTON_RAISING
 }debounceState_t;
 
+/*******************************************************************************
+ * Private function prototypes
+ ******************************************************************************/
 static void Error_Handler(void);
 static void buttonPressed(void);    // debe togglear el LED1.
 static void buttonReleased(void);	// debe togglear el LED3.
 
-
+/*******************************************************************************
+ * Private global variables
+ ******************************************************************************/
 static delay_t delayButton;
 static debounceState_t currentState;
 static bool_t fallingEdge;
 
-
+/*******************************************************************************
+ * Public functions
+ ******************************************************************************/
+/*!
+ * @brief   Anti-debounce Initialization
+ * @details	Set the initial state
+ * @param 	none
+ * @return 	none
+ */
 void debounceFSM_init(void)
 {
 	delayInit(&delayButton, BUTTON_DEBOUNCE_DELAY);
 	currentState = BUTTON_UP;
 }
 
-
+/*!
+ * @brief   Anti-debounce State Machine
+ * @details Read the inputs, transition the states.
+ * 			Must be called frequently.
+ * @param 	none
+ * @return 	none
+ */
 void debounceFSM_update()
 {
 	switch(currentState){
@@ -71,18 +96,11 @@ void debounceFSM_update()
 			}
 }
 
-
-static void buttonPressed(void)
-{
-	BSP_LED_Toggle(LED1);
-}
-
-
-static void buttonReleased(void)
-{
-	BSP_LED_Toggle(LED3);
-}
-
+/*!
+ * @brief   Read button state.
+ * @param 	none
+ * @return	True if button was pressed, False if not.
+ */
 bool_t readKey(void)
 {
 	bool_t returnValue = false;
@@ -95,7 +113,34 @@ bool_t readKey(void)
 
 	return returnValue;
 }
+/*******************************************************************************
+ * Private functions
+ ******************************************************************************/
+/*
+ * @brief  Toggle LED number 1.
+ * @param  None
+ * @return None
+ */
+static void buttonPressed(void)
+{
+	BSP_LED_Toggle(LED1);
+}
 
+/*
+ * @brief  Toggle LED number 3.
+ * @param  None
+ * @return None
+ */
+static void buttonReleased(void)
+{
+	BSP_LED_Toggle(LED3);
+}
+
+/*
+ * @brief  This function is executed in case of error occurrence.
+ * @param  None
+ * @return None
+ */
 static void Error_Handler(void)
 {
 	/* Turn LED2 on */

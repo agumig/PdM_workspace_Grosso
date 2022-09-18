@@ -51,10 +51,6 @@
 #define USARTx_RX_GPIO_PORT              GPIOD
 #define USARTx_RX_AF                     GPIO_AF7_USART3
 
-
-#define LED2_TOGGLE_TIME_1				100	// [ms]
-#define LED2_TOGGLE_TIME_2				500	// [ms]
-
 #endif /* __MAIN_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

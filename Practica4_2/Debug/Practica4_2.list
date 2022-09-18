@@ -29,23 +29,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  12 .ARM.attributes 00000030  00000000  00000000  0002001c  2**0
                   CONTENTS, READONLY
- 13 .debug_info   000051e2  00000000  00000000  0002004c  2**0
+ 13 .debug_info   000051ab  00000000  00000000  0002004c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_abbrev 000013ea  00000000  00000000  0002522e  2**0
+ 14 .debug_abbrev 000013ea  00000000  00000000  000251f7  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_aranges 00000548  00000000  00000000  00026618  2**3
+ 15 .debug_aranges 00000538  00000000  00000000  000265e8  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_ranges 00000480  00000000  00000000  00026b60  2**3
+ 16 .debug_ranges 00000470  00000000  00000000  00026b20  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_macro  0002550a  00000000  00000000  00026fe0  2**0
+ 17 .debug_macro  000254f2  00000000  00000000  00026f90  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_line   00008709  00000000  00000000  0004c4ea  2**0
+ 18 .debug_line   000086da  00000000  00000000  0004c482  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_str    000e12c9  00000000  00000000  00054bf3  2**0
+ 19 .debug_str    000e126c  00000000  00000000  00054b5c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .comment      00000050  00000000  00000000  00135ebc  2**0
+ 20 .comment      00000050  00000000  00000000  00135dc8  2**0
                   CONTENTS, READONLY
- 21 .debug_frame  00001260  00000000  00000000  00135f0c  2**2
+ 21 .debug_frame  00001228  00000000  00000000  00135e18  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -353,10 +353,10 @@ Disassembly of section .text:
  80004ee:	bf00      	nop
 
 080004f0 <debounceFSM_init>:
-static debounceState_t currentState;
-static bool_t fallingEdge;
-
-
+ * @details	Set the initial state
+ * @param 	none
+ * @return 	none
+ */
 void debounceFSM_init(void)
 {
  80004f0:	b580      	push	{r7, lr}
@@ -377,8 +377,10 @@ void debounceFSM_init(void)
  800050c:	20000044 	.word	0x20000044
 
 08000510 <debounceFSM_update>:
-
-
+ * 			Must be called frequently.
+ * @param 	none
+ * @return 	none
+ */
 void debounceFSM_update()
 {
  8000510:	b580      	push	{r7, lr}
@@ -516,10 +518,10 @@ void debounceFSM_update()
  80005d4:	20000045 	.word	0x20000045
 
 080005d8 <readKey>:
-{
-	BSP_LED_Toggle(LED3);
-}
-
+ * @brief   Read button state.
+ * @param 	none
+ * @return	True if button was pressed, False if not.
+ */
 bool_t readKey(void)
 {
  80005d8:	b480      	push	{r7}
@@ -556,7 +558,10 @@ bool_t readKey(void)
  8000604:	20000045 	.word	0x20000045
 
 08000608 <Error_Handler>:
-
+ * @brief  This function is executed in case of error occurrence.
+ * @param  None
+ * @return None
+ */
 static void Error_Handler(void)
 {
  8000608:	b580      	push	{r7, lr}
@@ -4052,7 +4057,7 @@ int main(void)
  80019ec:	af00      	add	r7, sp, #0
 
 	delay_t delayLed2;
-	tick_t duration = LED2_TOGGLE_TIME_1;
+	tick_t duration = LED2_TOGGLE_TIME_1;	// Toggling period
  80019ee:	2364      	movs	r3, #100	; 0x64
  80019f0:	60fb      	str	r3, [r7, #12]
          duration should be kept 1ms since PPP_TIMEOUT_VALUEs are defined and 
@@ -4085,13 +4090,14 @@ int main(void)
  8001a0e:	2000      	movs	r0, #0
  8001a10:	f7fe feea 	bl	80007e8 <BSP_PB_Init>
 
-
+	/* Initialize the non-blocking delay */
 	delayInit(&delayLed2, duration);
  8001a14:	463b      	mov	r3, r7
  8001a16:	68f9      	ldr	r1, [r7, #12]
  8001a18:	4618      	mov	r0, r3
  8001a1a:	f7fe fdfb 	bl	8000614 <delayInit>
 
+	/* Initialize anti-debounce */
 	debounceFSM_init();
  8001a1e:	f7fe fd67 	bl	80004f0 <debounceFSM_init>
 
@@ -4101,12 +4107,13 @@ int main(void)
 		debounceFSM_update();
  8001a22:	f7fe fd75 	bl	8000510 <debounceFSM_update>
 
-		if(readKey())	// button was pressed
+		if(readKey())	// Button User was pressed
  8001a26:	f7fe fdd7 	bl	80005d8 <readKey>
  8001a2a:	4603      	mov	r3, r0
  8001a2c:	2b00      	cmp	r3, #0
  8001a2e:	d00d      	beq.n	8001a4c <main+0x64>
 		{
+			// Change the toggling period
 			if(LED2_TOGGLE_TIME_1 == duration)
  8001a30:	68fb      	ldr	r3, [r7, #12]
  8001a32:	2b64      	cmp	r3, #100	; 0x64

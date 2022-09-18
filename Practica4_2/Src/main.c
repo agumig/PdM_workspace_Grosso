@@ -32,9 +32,16 @@
  */
 
 /* Private typedef -----------------------------------------------------------*/
+
+
 /* Private define ------------------------------------------------------------*/
+#define LED2_TOGGLE_TIME_1				100	// [ms]
+#define LED2_TOGGLE_TIME_2				500	// [ms]
+
 /* Private macro -------------------------------------------------------------*/
+
 /* Private variables ---------------------------------------------------------*/
+
 /* UART handler declaration */
 UART_HandleTypeDef UartHandle;
 
@@ -54,7 +61,7 @@ int main(void)
 {
 
 	delay_t delayLed2;
-	tick_t duration = LED2_TOGGLE_TIME_1;
+	tick_t duration = LED2_TOGGLE_TIME_1;	// Toggling period
 
 	/* STM32F4xx HAL library initialization:
        - Configure the Flash prefetch
@@ -80,9 +87,10 @@ int main(void)
 	/* Initialize BSP PB for BUTTON_USER */
 	BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
 
-
+	/* Initialize the non-blocking delay */
 	delayInit(&delayLed2, duration);
 
+	/* Initialize anti-debounce */
 	debounceFSM_init();
 
 	/* Infinite loop */
@@ -90,8 +98,9 @@ int main(void)
 	{
 		debounceFSM_update();
 
-		if(readKey())	// button was pressed
+		if(readKey())	// Button User was pressed
 		{
+			// Change the toggling period
 			if(LED2_TOGGLE_TIME_1 == duration)
 				duration = LED2_TOGGLE_TIME_2;
 			else
@@ -106,7 +115,6 @@ int main(void)
 
 	}
 }
-
 
 
 /**
