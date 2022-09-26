@@ -16,6 +16,10 @@ Practice 4_1:
 	- Creating an anti-debounce funtions.
 	- Toggling leds 1 and 3 pressing a button.
 
-Practive 4_2:
+Practice 4_2:
 	- Creating a library with the anti-debounce function.
 	- Toggling led 2 in two frequencies, changing with button.
+
+Practice 5:
+	- Creating a library with UART functions.
+	- Print by UART when button is pressed and released.
