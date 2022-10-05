@@ -5,9 +5,9 @@
 static void Error_Handler(void);
 
 void usTimerInit(void)
-{/*
+{
 	if(usTimerInit_port() != true)
-		Error_Handler();*/
+		Error_Handler();
 }
 
 void usTimerStart(void)

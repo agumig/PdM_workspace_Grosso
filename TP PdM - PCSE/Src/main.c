@@ -25,7 +25,6 @@
 #include "API_uart.h"
 #include "hw_hx711.h"
 #include "hw_timer_us.h"
-#include "hw_timer_us_port.h"
 
 /** @addtogroup STM32F4xx_HAL_Examples
  * @{
@@ -99,7 +98,7 @@ int main(void)
 	/* Configure the system clock to 180 MHz */
 	SystemClock_Config();
 
-	usTimerInit_port();
+	usTimerInit();
 	/* Initialize BSP Led */
 	BSP_LED_Init(LED1);
 	BSP_LED_Init(LED2);
