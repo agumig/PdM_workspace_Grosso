@@ -8,6 +8,7 @@ void usTimerInit(void);
 void usTimerStart(void);
 void usTimerStop(void);
 void usTimerDelay(uint16_t delay_us);
+void msTimerDelay(uint16_t delay_us);
 
 
 #endif

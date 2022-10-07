@@ -210,7 +210,7 @@ static uint64_t HX711_read()
 	// Wait for GPIO DATA low level
 	while (!HX711_is_ready())	// todo: que no sea bloqueante
 	{
-		HW711_delay(WAIT_FOR_READY_DELAY);
+		HW711_msDelay(WAIT_FOR_READY_DELAY);
 	}
 
 	HX711_interrupts_disable();	// Enter critical section

@@ -8,12 +8,13 @@
 
 typedef bool bool_t;
 
-#define MAX_TIMEOUT 0xFFFFFFFF
+#define MAX_TIMEOUT 100000
 
-bool_t usTimerInit_port();
-void usTimerStart_port(void);
+bool_t usTimerInit_port(void);
+bool_t usTimerStart_port(void);
 void usTimerStop_port(void);
 void usTimerDelay_port(uint16_t delay_us);
+void msTimerDelay_port(uint16_t delay_us);
 
 
 

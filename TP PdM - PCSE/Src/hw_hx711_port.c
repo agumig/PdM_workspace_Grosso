@@ -40,7 +40,8 @@ void HX711_init_port(void)
 
 	HAL_GPIO_Init(HX711_CLK_GPIO_Port, &gpioConfig);
 
-	//usTimerInit();
+	usTimerInit();
+	usTimerStart();
 }
 
 /**
@@ -78,9 +79,15 @@ uint8_t HX711_get_level(void)
  */
 void HW711_delay(uint16_t delay)
 {
+	//HAL_Delay(delay);
 	usTimerDelay(delay);
 }
 
+
+void HW711_msDelay(uint16_t delay)
+{
+	msTimerDelay(delay);
+}
 /**
  * @brief   Disable interruptions
  * @return 	none

@@ -25,6 +25,10 @@ void usTimerDelay(uint16_t delay_us)
 	usTimerDelay_port(delay_us);
 }
 
+void msTimerDelay(uint16_t delay_us)
+{
+	msTimerDelay_port(delay_us);
+}
 /**
  * @brief  This function is executed in case of error occurrence.
  * @param  None

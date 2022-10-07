@@ -41,7 +41,7 @@ typedef bool bool_t;
 
 #define CLOCK_DELAY_US      		20		// [us] MIN 0.1  TYP 1 MAX 50
 #define CLOCK_POWER_DOWN_DELAY_US 	60		// [us] Time to stay high to turn off
-#define WAIT_FOR_READY_DELAY		10000	// [us] Time to wait for chip ready
+#define WAIT_FOR_READY_DELAY		10		// [ms] Time to wait for chip ready
 
 #define READINGS_TO_GET_TARE		20		// How many readings to do
 

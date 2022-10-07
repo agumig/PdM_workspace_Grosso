@@ -21,6 +21,7 @@
 #ifndef __MAIN_H
 #define __MAIN_H
 
+
 /* Includes ------------------------------------------------------------------*/
 #include <stdio.h>
 #include "stm32f4xx_hal.h"  		/* <- HAL include */
