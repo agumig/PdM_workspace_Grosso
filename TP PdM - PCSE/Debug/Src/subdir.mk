@@ -8,8 +8,6 @@ C_SRCS += \
 ../Src/hw_hx711.c \
 ../Src/hw_hx711_port.c \
 ../Src/hw_pump.c \
-../Src/hw_timer.c \
-../Src/hw_timer_port.c \
 ../Src/hw_valve.c \
 ../Src/main.c 
 
@@ -17,8 +15,6 @@ OBJS += \
 ./Src/hw_hx711.o \
 ./Src/hw_hx711_port.o \
 ./Src/hw_pump.o \
-./Src/hw_timer.o \
-./Src/hw_timer_port.o \
 ./Src/hw_valve.o \
 ./Src/main.o 
 
@@ -26,8 +22,6 @@ C_DEPS += \
 ./Src/hw_hx711.d \
 ./Src/hw_hx711_port.d \
 ./Src/hw_pump.d \
-./Src/hw_timer.d \
-./Src/hw_timer_port.d \
 ./Src/hw_valve.d \
 ./Src/main.d 
 
@@ -39,7 +33,7 @@ Src/%.o Src/%.su: ../Src/%.c Src/subdir.mk
 clean: clean-Src
 
 clean-Src:
-	-$(RM) ./Src/hw_hx711.d ./Src/hw_hx711.o ./Src/hw_hx711.su ./Src/hw_hx711_port.d ./Src/hw_hx711_port.o ./Src/hw_hx711_port.su ./Src/hw_pump.d ./Src/hw_pump.o ./Src/hw_pump.su ./Src/hw_timer.d ./Src/hw_timer.o ./Src/hw_timer.su ./Src/hw_timer_port.d ./Src/hw_timer_port.o ./Src/hw_timer_port.su ./Src/hw_valve.d ./Src/hw_valve.o ./Src/hw_valve.su ./Src/main.d ./Src/main.o ./Src/main.su
+	-$(RM) ./Src/hw_hx711.d ./Src/hw_hx711.o ./Src/hw_hx711.su ./Src/hw_hx711_port.d ./Src/hw_hx711_port.o ./Src/hw_hx711_port.su ./Src/hw_pump.d ./Src/hw_pump.o ./Src/hw_pump.su ./Src/hw_valve.d ./Src/hw_valve.o ./Src/hw_valve.su ./Src/main.d ./Src/main.o ./Src/main.su
 
 .PHONY: clean-Src
 

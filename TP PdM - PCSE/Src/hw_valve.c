@@ -33,26 +33,30 @@ void Valves_Init(void)
  */
 void valveSet(Output_Valve_t valve, bool_t state)
 {
-	//todo: Poner SWITCH para las válvulas y un if adentro para el STATE
-	if(ErogationValve == valve)
+	switch(valve)
 	{
+	case ErogationValve:
 		uartSendString(VALVULA_EROGACION_MSJ);
 		valveErogationState = state;
-	}else
-	{
-		if(FillValve == valve)
-		{
-			uartSendString(VALVULA_LLENADO_MSJ);
-			valveFillState = state;
-		}
-	}
-	if(true == state)
-	{
-		uartSendString(ENDEDIDO_MSJ);
-	}
-	else
-	{
-		uartSendString(APAGADO_MSJ);
+
+		if(true == state)
+			uartSendString(ENDEDIDO_MSJ);
+		else
+			uartSendString(APAGADO_MSJ);
+
+		break;
+	case FillValve:
+		uartSendString(VALVULA_LLENADO_MSJ);
+		valveFillState = state;
+
+		if(true == state)
+			uartSendString(ENDEDIDO_MSJ);
+		else
+			uartSendString(APAGADO_MSJ);
+		break;
+	default:
+		Error_Handler();
+		break;
 	}
 }
 

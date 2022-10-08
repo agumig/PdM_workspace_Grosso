@@ -21,7 +21,7 @@
 /*******************************************************************************
  * Includes
  ******************************************************************************/
-#include <hw_timer.h>
+#include <API_timer.h>
 #include "main.h"
 #include "API_debounce.h"
 #include "API_delay.h"
@@ -45,11 +45,13 @@ typedef enum{
  * Private function prototypes
  ******************************************************************************/
 static void SystemClock_Config(void);
-
+static void mainFSM_update(void);
 /*******************************************************************************
- * Functions
+ * Private global variables
  ******************************************************************************/
-
+static FSM_State_t state = IDLE;
+static double reservoirWeight = 0;
+static bool_t erogationButton = false;
 /**
  * @brief  Main program
  * @param  None
@@ -57,9 +59,6 @@ static void SystemClock_Config(void);
  */
 int main(void)
 {
-	FSM_State_t state = IDLE;
-	double reservoirWeight = 0;
-	bool_t erogationButton = false;
 
 	/* STM32F4xx HAL library initialization:
        - Configure the Flash prefetch
@@ -116,88 +115,97 @@ int main(void)
 		reservoirWeight = HX711_get_units(WEIGHT_READINGS);
 		erogationButton = readKeyPressed();		// ¿Was the Button User pressed?
 
-		switch(state)
+		mainFSM_update();
+	}
+}
+
+/**
+ * @brief   Main "Fine State Machine" updating
+ * @param	none
+ * @return 	void
+ */
+static void mainFSM_update(void)
+{
+	switch(state)
+	{
+	case IDLE:
+		if(RESERVORY_LIMIT_MIN > reservoirWeight)	// Empty reservoir
 		{
-		case IDLE:
-			if(RESERVORY_LIMIT_MIN > reservoirWeight)	// Empty reservoir
-			{
-				state = FILL;
-			}else
-			{
-				if(erogationButton)		// User demand of erogation
-				{
-					state = EROGATION;
-				}
-			}
-
-			break;
-		case FILL:
-
-			if(erogationButton && (RESERVORY_LIMIT_MIN < reservoirWeight))	// Erogation demand and content of reservoir OK
+			state = FILL;
+		}else
+		{
+			if(erogationButton)		// User demand of erogation
 			{
 				state = EROGATION;
+			}
+		}
 
+		break;
+	case FILL:
+
+		if(erogationButton && (RESERVORY_LIMIT_MIN < reservoirWeight))	// Erogation demand and content of reservoir OK
+		{
+			state = EROGATION;
+
+			// End of FILL
+			if(getValveState(FillValve))
+				valveSet(FillValve, false);
+			if(getPumpState(FillPump))
+				pumpSet(FillPump,false);
+		}else
+		{
+			if(RESERVORY_LIMIT_MAX > reservoirWeight)	// Reservoir is not completely full
+			{
+				// Start of FILL
+				if(!getValveState(FillValve))
+					valveSet(FillValve, true);
+				if(!getPumpState(FillPump))
+					pumpSet(FillPump,true);
+			}else
+			{
 				// End of FILL
 				if(getValveState(FillValve))
 					valveSet(FillValve, false);
 				if(getPumpState(FillPump))
 					pumpSet(FillPump,false);
-			}else
-			{
-				if(RESERVORY_LIMIT_MAX > reservoirWeight)	// Reservoir is not completely full
-				{
-					// Start of FILL
-					if(!getValveState(FillValve))
-						valveSet(FillValve, true);
-					if(!getPumpState(FillPump))
-						pumpSet(FillPump,true);
-				}else
-				{
-					// End of FILL
-					if(getValveState(FillValve))
-						valveSet(FillValve, false);
-					if(getPumpState(FillPump))
-						pumpSet(FillPump,false);
 
-					state = IDLE;
-				}
+				state = IDLE;
 			}
-			break;
-		case EROGATION:
-			if(erogationButton && (RESERVORY_LIMIT_MIN < reservoirWeight))	// Erogation demand and content of reservoir OK
+		}
+		break;
+	case EROGATION:
+		if(erogationButton && (RESERVORY_LIMIT_MIN < reservoirWeight))	// Erogation demand and content of reservoir OK
+		{
+			// Start of EROGATION
+			if(!getValveState(ErogationValve))
+				valveSet(ErogationValve, true);
+			if(!getPumpState(ErogationPump))
+				pumpSet(ErogationPump,true);
+		}
+		else
+		{
+			// End of EROGATION
+			if(getValveState(ErogationValve))
+				valveSet(ErogationValve, false);
+			if(getPumpState(ErogationPump))
+				pumpSet(ErogationPump,false);
+
+			if(RESERVORY_LIMIT_MIN > reservoirWeight)	// Empty reservoir
 			{
-				// Start of EROGATION
-				if(!getValveState(ErogationValve))
-					valveSet(ErogationValve, true);
-				if(!getPumpState(ErogationPump))
-					pumpSet(ErogationPump,true);
+				state = FILL;
 			}
 			else
 			{
-				// End of EROGATION
-				if(getValveState(ErogationValve))
-					valveSet(ErogationValve, false);
-				if(getPumpState(ErogationPump))
-					pumpSet(ErogationPump,false);
-
-				if(RESERVORY_LIMIT_MIN > reservoirWeight)	// Empty reservoir
-				{
-					state = FILL;
-				}
-				else
-				{
-					if(!erogationButton)
-						state = IDLE;
-				}
+				if(!erogationButton)
+					state = IDLE;
 			}
-			break;
-		default:
-			Error_Handler();
-			break;
 		}
+		break;
+	default:
+		Error_Handler();
+		break;
 	}
 }
-
 /**
  * @brief  System Clock Configuration
  *         The system Clock is configured as follow :
