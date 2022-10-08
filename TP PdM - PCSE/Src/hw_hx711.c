@@ -14,7 +14,8 @@
  ******************************************************************************/
 static bool_t HX711_is_ready();
 static uint64_t HX711_read();
-static double  HX711_read_average(uint8_t times) ;
+static uint64_t  HX711_read_average(uint8_t times);
+static uint32_t ComplementA2toInt(uint32_t data, uint8_t bits);
 
 /*******************************************************************************
  * Global private variables
@@ -76,9 +77,9 @@ void HX711_set_gain(HX711_GAIN gain)
  * @param   uint8_t times
  * @return 	Read_average() - OFFSET
  */
-double HX711_get_value(uint8_t times)
+uint64_t HX711_get_value(uint8_t times)
 {
-	double avg = 0, returnValue = 0;
+	uint64_t avg = 0, returnValue = 0;
 
 	avg = HX711_read_average(times);
 
@@ -96,7 +97,7 @@ double HX711_get_value(uint8_t times)
  */
 double HX711_get_units(uint8_t times)
 {
-	return HX711_get_value(times) / Scale;
+	return (BIT_MGR_CONVERTION *(HX711_get_value(times) / Scale));
 }
 
 /**
@@ -108,12 +109,8 @@ void HX711_tare(uint8_t times)
 {
 	uint64_t sum = 0;
 
-	//DEBUGOUT(TAG, "Start Tare");	//TODO
-
 	sum = HX711_read_average(times);
 	HX711_set_offset(sum);
-
-	//DEBUGOUT(TAG, "End Tare: %llu ",sum);	//TODO
 }
 
 /**
@@ -238,9 +235,7 @@ static uint64_t HX711_read()
 
 	HX711_interrupts_enable();	// Exit critical section
 
-	//DEBUGOUT(TAG, "Value: %llu", value);	//TODO
-
-	value =value^0x800000;
+	value =value^0x800000;	//TODO: Comentado para prueba
 
 	return (value);
 }
@@ -252,19 +247,36 @@ static uint64_t HX711_read()
  * @param   uint8_t times
  * @return 	Average reading
  */
-static double  HX711_read_average(uint8_t times)
+static uint64_t  HX711_read_average(uint8_t times)
 {
-	double sum = 0;
+	uint64_t sum = 0;
 	uint8_t i = 0;
 
-	//DEBUGOUT(TAG, "Read Average Start"); //TODO
+	if(times > MAX_TIMES_ALLOWED)
+		times = MAX_TIMES_ALLOWED;
+
+	HX711_power_up();
 
 	for (i = 0; i < times; i++)
 	{
 		sum += HX711_read();
 	}
-
-	//DEBUGOUT(TAG, "Read Average End : %lf",(sum / times));	//TODO
+	HX711_power_down();
 
 	return sum / times;
+}
+
+static uint32_t ComplementA2toInt(uint32_t data, uint8_t bits)
+{
+	const uint32_t negative = (data & (1 << (bits-1))) != 0;
+	uint32_t nativeInt;
+
+	if (negative)
+	  nativeInt = data | ~((1 << bits) - 1);
+	else
+	  nativeInt = data;
+
+	nativeInt = nativeInt | 0xFF000000;
+
+	return nativeInt;
 }

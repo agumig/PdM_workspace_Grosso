@@ -22,20 +22,21 @@
 #define __MAIN_H
 
 
-/* Includes ------------------------------------------------------------------*/
+/*******************************************************************************
+ * Includes
+ ******************************************************************************/
 #include <stdio.h>
 #include "stm32f4xx_hal.h"  		/* <- HAL include */
 #include "stm32f4xx_nucleo_144.h" 	/* <- BSP include */
 #include <stdint.h>
 #include <stdbool.h>
+#include "API_error.h"
 
+/*******************************************************************************
+ * Defines
+ ******************************************************************************/
+//#define _CALIBRATION__	// Enable HX711 calibration
 
-//#define _CALIBRATION__
-
-/* Exported types ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
-/* User can use this section to tailor USARTx/UARTx instance used and associated
-   resources */
 /* Definition for USARTx clock resources */
 #define USARTx                           USART3
 #define USARTx_CLK_ENABLE()              __HAL_RCC_USART3_CLK_ENABLE();
@@ -53,23 +54,24 @@
 #define USARTx_RX_GPIO_PORT              GPIOD
 #define USARTx_RX_AF                     GPIO_AF7_USART3
 
-/** Celda de carga **/
 
-#define RESERVORY_LIMIT_MIN				5	// [l] Minimum reservoir content.
-#define RESERVORY_LIMIT_MAX				15	// [l] Maximum reservoir content.
+/* GPIO */
+#define GPIO_SECTION_D_ENABLE() 		__HAL_RCC_GPIOD_CLK_ENABLE();
 
+/* Celda de carga */
+#define RESERVORY_LIMIT_MIN				5000	// [cm3] Minimum reservoir content.
+#define RESERVORY_LIMIT_MAX				15000	// [cm3] Maximum reservoir content.
 #define WEIGHT_READINGS					10	// [times] Readings to average the weight.
 
 
 /* UART MESSAGES */
-
-#define BOMBA_EROGACION		((uint8_t *)"BOMBA EROGACION ")
-#define VALVULA_EROGACION	((uint8_t *)"VALVULA EROGACION ")
-#define	BOMBA_LLENADO		((uint8_t *)"BOMBA LLENADO ")
-#define	VALVULA_LLENADO		((uint8_t *)"VALVULA LLENADO ")
-#define ENDEDIDO			((uint8_t *)"ENCENDIDA - ON/n")
-#define	APAGADO				((uint8_t *)"APAGADO - OFF\n")
-#define TIMER1_CONFIG_MSJ	((uint8_t *)"INIT TIMER 1 SUCESS\n")
+#define BOMBA_EROGACION_MSJ		((uint8_t *)"BOMBA EROGACION ")
+#define VALVULA_EROGACION_MSJ	((uint8_t *)"VALVULA EROGACION ")
+#define	BOMBA_LLENADO_MSJ		((uint8_t *)"BOMBA LLENADO ")
+#define	VALVULA_LLENADO_MSJ		((uint8_t *)"VALVULA LLENADO ")
+#define ENDEDIDO_MSJ			((uint8_t *)"- ON/n")
+#define	APAGADO_MSJ				((uint8_t *)"- OFF\n")
+#define TIMER1_CONFIG_MSJ		((uint8_t *)"INIT TIMER 1 SUCESS\n")
 
 #endif /* __MAIN_H */
 

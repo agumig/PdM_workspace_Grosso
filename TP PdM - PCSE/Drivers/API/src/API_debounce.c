@@ -14,11 +14,6 @@ BUTTON_RAISING
 }debounceState_t;
 
 /*******************************************************************************
- * Private function prototypes
- ******************************************************************************/
-static void Error_Handler(void);	// Error state function
-
-/*******************************************************************************
  * Private global variables
  ******************************************************************************/
 static delay_t delayButton;
@@ -115,23 +110,4 @@ bool_t readKeyPressed(void)
 	}
 
 	return returnValue;
-}
-
-
-/*******************************************************************************
- * Private functions
- ******************************************************************************/
-
-/*
- * @brief  This function is executed in case of error occurrence.
- * @param  None
- * @return None
- */
-static void Error_Handler(void)
-{
-	/* Turn LED2 on */
-	BSP_LED_On(LED2);
-	while (1)
-	{
-	}
 }

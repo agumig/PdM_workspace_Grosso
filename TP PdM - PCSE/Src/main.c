@@ -18,23 +18,21 @@
  ******************************************************************************
  */
 
-/* Includes ------------------------------------------------------------------*/
+/*******************************************************************************
+ * Includes
+ ******************************************************************************/
+#include <hw_timer.h>
 #include "main.h"
 #include "API_debounce.h"
 #include "API_delay.h"
 #include "API_uart.h"
 #include "hw_hx711.h"
-#include "hw_timer_us.h"
+#include "hw_pump.h"
+#include "hw_valve.h"
 
-/** @addtogroup STM32F4xx_HAL_Examples
- * @{
- */
-
-/** @addtogroup UART_Printf
- * @{
- */
-
-/* Private typedef -----------------------------------------------------------*/
+/*******************************************************************************
+ * Private Typedef
+ ******************************************************************************/
 
 // States of MAIN Fine State Machine
 typedef enum{
@@ -43,39 +41,19 @@ typedef enum{
 	EROGATION
 }FSM_State_t;
 
-/* Private define ------------------------------------------------------------*/
-//#define CUBEMX_TEST
-/* Private macro -------------------------------------------------------------*/
-
-/* Private variables ---------------------------------------------------------*/
-
-static bool_t pumpErogationState = false, pumpFillState = false;
-static bool_t valveErogationState = false, valveFillState = false;
-
-typedef enum{
-	ErogationPump,
-	ErogationValve,
-	FillPump,
-	FillValve
-}Output_t;
-/* UART handler declaration */
-UART_HandleTypeDef UartHandle;
-
-/* Private function prototypes -----------------------------------------------*/
-
+/*******************************************************************************
+ * Private function prototypes
+ ******************************************************************************/
 static void SystemClock_Config(void);
-static void Error_Handler(void);
 
-static void valveSet(Output_t valve, bool_t state);
-static void pumpSet(Output_t pump, bool_t state);
-static void Valves_Init(void);
-static void Pump_Init(void);
-/* Private functions ---------------------------------------------------------*/
+/*******************************************************************************
+ * Functions
+ ******************************************************************************/
 
 /**
  * @brief  Main program
  * @param  None
- * @retval None
+ * @return None
  */
 int main(void)
 {
@@ -110,6 +88,7 @@ int main(void)
 	/* Initialize anti-debounce */
 	debounceFSM_init();
 
+	/* Initialize UART to send */
 	if(!uartInit())
 		Error_Handler();
 
@@ -125,27 +104,27 @@ int main(void)
 	HW_HX711_Init();
 #endif
 
-	Pump_Init();	// todo: Create a folder for HW_PUMP
-	Valves_Init();	// todo: Create a folder for HW_VALVE
+	Pump_Init();
+	Valves_Init();
 
 	/* Infinite loop */
 	while (1)
 	{
 
-		debounceFSM_update();
+		debounceFSM_update();	// Read the button user state with anti debounce applied
 
 		reservoirWeight = HX711_get_units(WEIGHT_READINGS);
-		erogationButton = readKeyPressed();		// Button User was pressed
+		erogationButton = readKeyPressed();		// ¿Was the Button User pressed?
 
 		switch(state)
 		{
 		case IDLE:
-			if(RESERVORY_LIMIT_MIN > reservoirWeight)
+			if(RESERVORY_LIMIT_MIN > reservoirWeight)	// Empty reservoir
 			{
 				state = FILL;
 			}else
 			{
-				if(erogationButton)
+				if(erogationButton)		// User demand of erogation
 				{
 					state = EROGATION;
 				}
@@ -154,27 +133,30 @@ int main(void)
 			break;
 		case FILL:
 
-			if(erogationButton && (RESERVORY_LIMIT_MIN < reservoirWeight))
+			if(erogationButton && (RESERVORY_LIMIT_MIN < reservoirWeight))	// Erogation demand and content of reservoir OK
 			{
 				state = EROGATION;
 
-				if(valveFillState)
+				// End of FILL
+				if(getValveState(FillValve))
 					valveSet(FillValve, false);
-				if(pumpFillState)
+				if(getPumpState(FillPump))
 					pumpSet(FillPump,false);
 			}else
 			{
-				if(RESERVORY_LIMIT_MAX > reservoirWeight)
+				if(RESERVORY_LIMIT_MAX > reservoirWeight)	// Reservoir is not completely full
 				{
-					if(!valveFillState)
+					// Start of FILL
+					if(!getValveState(FillValve))
 						valveSet(FillValve, true);
-					if(!pumpFillState)
+					if(!getPumpState(FillPump))
 						pumpSet(FillPump,true);
 				}else
 				{
-					if(valveFillState)
+					// End of FILL
+					if(getValveState(FillValve))
 						valveSet(FillValve, false);
-					if(pumpFillState)
+					if(getPumpState(FillPump))
 						pumpSet(FillPump,false);
 
 					state = IDLE;
@@ -182,21 +164,23 @@ int main(void)
 			}
 			break;
 		case EROGATION:
-			if(erogationButton && (RESERVORY_LIMIT_MIN < reservoirWeight))
+			if(erogationButton && (RESERVORY_LIMIT_MIN < reservoirWeight))	// Erogation demand and content of reservoir OK
 			{
-				if(!valveErogationState)
+				// Start of EROGATION
+				if(!getValveState(ErogationValve))
 					valveSet(ErogationValve, true);
-				if(!pumpErogationState)
+				if(!getPumpState(ErogationPump))
 					pumpSet(ErogationPump,true);
 			}
 			else
 			{
-				if(valveErogationState)
+				// End of EROGATION
+				if(getValveState(ErogationValve))
 					valveSet(ErogationValve, false);
-				if(pumpErogationState)
+				if(getPumpState(ErogationPump))
 					pumpSet(ErogationPump,false);
 
-				if(RESERVORY_LIMIT_MIN > reservoirWeight)
+				if(RESERVORY_LIMIT_MIN > reservoirWeight)	// Empty reservoir
 				{
 					state = FILL;
 				}
@@ -211,70 +195,6 @@ int main(void)
 			Error_Handler();
 			break;
 		}
-	}
-}
-
-
-static void Pump_Init(void)
-{
-	pumpSet(FillPump, false);
-	pumpSet(ErogationPump, false);
-}
-
-static void Valves_Init(void)
-{
-	valveSet(FillValve, false);
-	valveSet(ErogationValve, false);
-}
-
-static void pumpSet(Output_t pump, bool_t state)
-{
-	if(ErogationPump == pump)
-	{
-		uartSendString(BOMBA_EROGACION);
-		pumpErogationState = state;
-	}else
-	{
-		if(FillPump == pump)
-		{
-			uartSendString(BOMBA_LLENADO);
-			pumpFillState = state;
-		}
-
-	}
-	if(true == state)
-	{
-		uartSendString(ENDEDIDO);
-	}
-	else
-	{
-		uartSendString(APAGADO);
-	}
-
-}
-
-static void valveSet(Output_t valve, bool_t state)
-{
-	if(ErogationValve == valve)
-	{
-		uartSendString(VALVULA_EROGACION);
-		valveErogationState = state;
-	}else
-	{
-		if(FillValve == valve)
-		{
-			uartSendString(VALVULA_LLENADO);
-			valveFillState = state;
-		}
-
-	}
-	if(true == state)
-	{
-		uartSendString(ENDEDIDO);
-	}
-	else
-	{
-		uartSendString(APAGADO);
 	}
 }
 
@@ -301,7 +221,6 @@ static void valveSet(Output_t valve, bool_t state)
  */
 static void SystemClock_Config(void)
 {
-#ifndef CUBEMX_TEST
 	RCC_ClkInitTypeDef RCC_ClkInitStruct;
 	RCC_OscInitTypeDef RCC_OscInitStruct;
 
@@ -346,58 +265,8 @@ static void SystemClock_Config(void)
 		/* Initialization Error */
 		Error_Handler();
 	}
-#endif
-#ifdef CUBEMX_TEST
-
-	  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-	  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-	  /** Configure the main internal regulator output voltage
-	  */
-	  __HAL_RCC_PWR_CLK_ENABLE();
-	  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
-
-	  /** Initializes the RCC Oscillators according to the specified parameters
-	  * in the RCC_OscInitTypeDef structure.
-	  */
-	  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-	  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-	  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-	  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-	  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-	  {
-	    Error_Handler();
-	  }
-
-	  /** Initializes the CPU, AHB and APB buses clocks
-	  */
-	  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-	                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-	  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
-	  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-	  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-
-	  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
-	  {
-	    Error_Handler();
-	  }
-#endif
 }
 
-/**
- * @brief  This function is executed in case of error occurrence.
- * @param  None
- * @retval None
- */
-static void Error_Handler(void)
-{
-	/* Turn LED2 on */
-	BSP_LED_On(LED2);
-	while (1)
-	{
-	}
-}
 
 #ifdef  USE_FULL_ASSERT
 /**

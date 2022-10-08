@@ -1,3 +1,9 @@
+/**
+  ******************************************************************************
+  * @file    TP PdM - PCSE/Inc/hw_hx711.h
+  * @brief   Header for hw_hx711..c module
+  ******************************************************************************
+*/
 #ifndef __HW_HX711_H__
 #define __HW_HX711_H__
 
@@ -32,10 +38,11 @@ typedef bool bool_t;
 #define ADC_MAX_SATURATION			0x7FFFFF	// Output data saturation value (MAX)
 
 #define HX711_ZERO_OFFSET   		0
-#define HX711_REAL_OFFSET			585
+#define HX711_REAL_OFFSET			146842
 
-#define HX711_SCALE_GR         		1		// Gramos = 1. Kilogramos = 1000.
-#define HX711_SCALE_KG         		1000	// Gramos = 1. Kilogramos = 1000.
+#define BIT_MGR_CONVERTION			1.192092967				//[mg] 1 count equal to 1.92092967 mili gram
+#define HX711_SCALE_GR         		1000					// Gramos = 1. Kilogramos = 1000.
+#define HX711_SCALE_KG         		(HX711_SCALE_GR*1000)	// Gramos = 1. Kilogramos = 1000.
 
 #define HX711_SCALE					HX711_SCALE_GR
 
@@ -43,6 +50,7 @@ typedef bool bool_t;
 #define CLOCK_POWER_DOWN_DELAY_US 	60		// [us] Time to stay high to turn off
 #define WAIT_FOR_READY_DELAY		10		// [ms] Time to wait for chip ready
 
+#define MAX_TIMES_ALLOWED			20		// How many reading are allowed
 #define READINGS_TO_GET_TARE		20		// How many readings to do
 
 /*******************************************************************************
@@ -57,7 +65,7 @@ float HX711_get_scale();
 void HX711_tare(uint8_t times);
 void HX711_set_offset(uint64_t offset);
 uint64_t HX711_get_offset();
-double HX711_get_value(uint8_t times);
+uint64_t HX711_get_value(uint8_t times);
 double HX711_get_units(uint8_t times);
 void HX711_power_down();
 void HX711_power_up();

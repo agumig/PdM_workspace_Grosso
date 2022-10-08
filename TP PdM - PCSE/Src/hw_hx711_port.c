@@ -1,13 +1,15 @@
 /*******************************************************************************
  * Includes
  ******************************************************************************/
-
 #include "hw_hx711_port.h"
 
-
+/******************************************************************************
+ * Defines
+ ******************************************************************************/
 #define HX711_CLK_GPIO_Port 	GPIOD
 #define HX711_DATA_GPIO_Port 	GPIOD
-/***	****************************************************************************
+
+/******************************************************************************
  * Functions
  ******************************************************************************/
 /**
@@ -20,7 +22,7 @@ void HX711_init_port(void)
 	GPIO_InitTypeDef gpioConfig;
 
 	/* GPIO Ports Clock Enable */
-	__HAL_RCC_GPIOD_CLK_ENABLE();
+	GPIO_SECTION_D_ENABLE();
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(HX711_CLK_GPIO_Port, HX711_CLK, GPIO_PIN_RESET);
@@ -40,7 +42,7 @@ void HX711_init_port(void)
 
 	HAL_GPIO_Init(HX711_CLK_GPIO_Port, &gpioConfig);
 
-	usTimerInit();
+	usTimerInit();	// Initialize timer to use for HX711 comunication (Clk)
 	usTimerStart();
 }
 
@@ -69,12 +71,11 @@ void HX711_CLK_set_high(void)
 uint8_t HX711_get_level(void)
 {
 	return HAL_GPIO_ReadPin (HX711_DATA_GPIO_Port, HX711_DATA);
-
 }
 
 /**
  * @brief   HX711 delay
- * @param   uint32_t delay [us]
+ * @param   uint16_t delay [us]
  * @return 	none
  */
 void HW711_delay(uint16_t delay)
@@ -83,7 +84,11 @@ void HW711_delay(uint16_t delay)
 	usTimerDelay(delay);
 }
 
-
+/**
+ * @brief   HX711 delay
+ * @param   uint16_t delay [ms]
+ * @return 	none
+ */
 void HW711_msDelay(uint16_t delay)
 {
 	msTimerDelay(delay);
