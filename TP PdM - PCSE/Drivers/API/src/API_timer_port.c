@@ -11,7 +11,6 @@ static TIM_HandleTypeDef htim1;
 /*******************************************************************************
  * Private function prototypes
  ******************************************************************************/
-static void Error_Handler(void);
 
 /*******************************************************************************
  * Functions
@@ -111,7 +110,7 @@ void usTimerDelay_port(uint16_t delay_us)
 	}
 
 	if(timeout >= MAX_TIMEOUT)
-		Error_Handler();
+		errorHandler();
 }
 
 /**
@@ -125,18 +124,6 @@ void msTimerDelay_port(uint16_t delay_us)
 	HAL_Delay(delay_us);
 }
 
-/*******************************************************************************
- * Private functions
- ******************************************************************************/
-/**
- * @brief  This function is executed in case of error occurrence.
- * @param  None
- * @retval None
- */
-static void Error_Handler(void)
-{
-	while (1);
-}
 
 
 

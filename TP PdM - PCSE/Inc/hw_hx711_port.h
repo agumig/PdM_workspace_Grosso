@@ -31,13 +31,13 @@
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
-void HX711_init_port(void);
-void HX711_CLK_set_low(void);
-void HX711_CLK_set_high(void);
-uint8_t HX711_get_level(void);
+void HX711_initPort(void);
+void HX711_CLK_setLow(void);
+void HX711_CLK_setHigh(void);
+uint8_t HX711_getLevel(void);
 void HW711_delay(uint16_t delay);
 void HW711_msDelay(uint16_t delay);
-void HX711_interrupts_enable(void);
-void HX711_interrupts_disable(void);
+void HX711_interruptsEnable(void);
+void HX711_interruptsDisable(void);
 
 #endif

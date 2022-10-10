@@ -59,9 +59,9 @@
 #define GPIO_SECTION_D_ENABLE() 		__HAL_RCC_GPIOD_CLK_ENABLE();
 
 /* Celda de carga */
-#define RESERVORY_LIMIT_MIN				5000	// [cm3] Minimum reservoir content.
-#define RESERVORY_LIMIT_MAX				15000	// [cm3] Maximum reservoir content.
-#define WEIGHT_READINGS					10	// [times] Readings to average the weight.
+#define RESERVORY_LIMIT_MIN				1000	// [cm3] Minimum reservoir content.
+#define RESERVORY_LIMIT_MAX				3000	// [cm3] Maximum reservoir content.
+#define WEIGHT_READINGS					1	// [times] Readings to average the weight.
 
 
 /* UART MESSAGES */
@@ -69,10 +69,11 @@
 #define VALVULA_EROGACION_MSJ	((uint8_t *)"VALVULA EROGACION ")
 #define	BOMBA_LLENADO_MSJ		((uint8_t *)"BOMBA LLENADO ")
 #define	VALVULA_LLENADO_MSJ		((uint8_t *)"VALVULA LLENADO ")
-#define ENDEDIDO_MSJ			((uint8_t *)"- ON/n")
+#define ENCENDIDO_MSJ			((uint8_t *)"- ON\n")
 #define	APAGADO_MSJ				((uint8_t *)"- OFF\n")
 #define TIMER1_CONFIG_MSJ		((uint8_t *)"INIT TIMER 1 SUCESS\n")
 
+#define BINARY_BASE				2
 #endif /* __MAIN_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

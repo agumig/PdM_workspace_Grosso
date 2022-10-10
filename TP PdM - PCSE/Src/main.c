@@ -89,22 +89,22 @@ int main(void)
 
 	/* Initialize UART to send */
 	if(!uartInit())
-		Error_Handler();
+		errorHandler();
 
 	/* For calibration it's necessary initializing the IC and reading the TARE value.
 	 * After that we need to set HX711_REAL_OFFSET (in hw_hx711.h) with the TARE value*/
 #ifdef _CALIBRATION__
-	HW_HX711_Init_Tare();
-	HX711_get_offset();
+	HX711_Init_Tare();
+	HX711_getOffset();
 #endif
 
 #ifndef _CALIBRATION__
 	/* Initialize */
-	HW_HX711_Init();
+	HX711_Init();
 #endif
 
 	Pump_Init();
-	Valves_Init();
+	Valve_Init();
 
 	/* Infinite loop */
 	while (1)
@@ -112,7 +112,7 @@ int main(void)
 
 		debounceFSM_update();	// Read the button user state with anti debounce applied
 
-		reservoirWeight = HX711_get_units(WEIGHT_READINGS);
+		reservoirWeight = HX711_getUnits(WEIGHT_READINGS);
 		erogationButton = readKeyPressed();		// ¿Was the Button User pressed?
 
 		mainFSM_update();
@@ -202,7 +202,7 @@ static void mainFSM_update(void)
 		}
 		break;
 	default:
-		Error_Handler();
+		errorHandler();
 		break;
 	}
 }
@@ -252,13 +252,13 @@ static void SystemClock_Config(void)
 	if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
 	{
 		/* Initialization Error */
-		Error_Handler();
+		errorHandler();
 	}
 
 	if(HAL_PWREx_EnableOverDrive() != HAL_OK)
 	{
 		/* Initialization Error */
-		Error_Handler();
+		errorHandler();
 	}
 
 	/* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
@@ -271,7 +271,7 @@ static void SystemClock_Config(void)
 	if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
 	{
 		/* Initialization Error */
-		Error_Handler();
+		errorHandler();
 	}
 }
 

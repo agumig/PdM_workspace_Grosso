@@ -27,7 +27,7 @@ typedef enum{
 /*******************************************************************************
  * Function prototypes
  ******************************************************************************/
-void Valves_Init(void);
+void Valve_Init(void);
 void valveSet(Output_Valve_t valve, bool_t state);
 bool_t getValveState(Output_Valve_t valve);
 

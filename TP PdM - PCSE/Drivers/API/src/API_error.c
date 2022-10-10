@@ -11,7 +11,7 @@
  * @param  None
  * @retval None
  */
-void Error_Handler(void)
+void errorHandler(void)
 {
 	uartSendString(ERROR_MSJ);
 	while (1);

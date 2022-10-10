@@ -15,7 +15,7 @@
 void usTimerInit(void)
 {
 	if(usTimerInit_port() != true)
-		Error_Handler();
+		errorHandler();
 }
 
 /**

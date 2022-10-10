@@ -14,6 +14,7 @@
 #include "stm32f4xx_hal.h"  		/* <- HAL include */
 #include "stm32f4xx_nucleo_144.h" 	/* <- BSP include */
 #include "stm32f4xx_hal_tim.h"
+#include "API_error.h"
 
 /*******************************************************************************
  * Typedefs

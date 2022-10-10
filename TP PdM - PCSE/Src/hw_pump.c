@@ -32,26 +32,29 @@ void Pump_Init(void)
  */
 void pumpSet(Output_Pump_t pump, bool_t state)
 {
-	if(ErogationPump == pump)
+	switch(pump)
 	{
+	case ErogationPump:
 		uartSendString(BOMBA_EROGACION_MSJ);
 		pumpErogationState = state;
-	}else
-	{
-		if(FillPump == pump)
-		{
-			uartSendString(BOMBA_LLENADO_MSJ);
-			pumpFillState = state;
-		}
 
-	}
-	if(true == state)
-	{
-		uartSendString(ENDEDIDO_MSJ);
-	}
-	else
-	{
-		uartSendString(APAGADO_MSJ);
+		if(true == state)
+			uartSendString(ENCENDIDO_MSJ);
+		else
+			uartSendString(APAGADO_MSJ);
+		break;
+	case FillPump:
+		uartSendString(BOMBA_LLENADO_MSJ);
+		pumpFillState = state;
+
+		if(true == state)
+			uartSendString(ENCENDIDO_MSJ);
+		else
+			uartSendString(APAGADO_MSJ);
+		break;
+	default:
+		errorHandler();
+		break;
 	}
 }
 
@@ -74,7 +77,7 @@ bool_t getPumpState(Output_Pump_t pump)
 		returnValue = pumpFillState;
 		break;
 	default:
-		Error_Handler();
+		errorHandler();
 		break;
 	}
 	return returnValue;

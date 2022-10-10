@@ -18,7 +18,7 @@ static bool_t valveErogationState = false, valveFillState = false;
  * @param   none
  * @return 	none
  */
-void Valves_Init(void)
+void Valve_Init(void)
 {
 	valveSet(FillValve, false);
 	valveSet(ErogationValve, false);
@@ -40,7 +40,7 @@ void valveSet(Output_Valve_t valve, bool_t state)
 		valveErogationState = state;
 
 		if(true == state)
-			uartSendString(ENDEDIDO_MSJ);
+			uartSendString(ENCENDIDO_MSJ);
 		else
 			uartSendString(APAGADO_MSJ);
 
@@ -50,12 +50,12 @@ void valveSet(Output_Valve_t valve, bool_t state)
 		valveFillState = state;
 
 		if(true == state)
-			uartSendString(ENDEDIDO_MSJ);
+			uartSendString(ENCENDIDO_MSJ);
 		else
 			uartSendString(APAGADO_MSJ);
 		break;
 	default:
-		Error_Handler();
+		errorHandler();
 		break;
 	}
 }
@@ -79,7 +79,7 @@ bool_t getValveState(Output_Valve_t valve)
 		returnValue = valveFillState;
 		break;
 	default:
-		Error_Handler();
+		errorHandler();
 		break;
 	}
 

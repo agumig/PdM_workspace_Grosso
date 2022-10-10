@@ -12,16 +12,17 @@
 /*******************************************************************************
  * Private functions prototypes
  ******************************************************************************/
-static bool_t HX711_is_ready();
+static bool_t HX711_isReady();
 static uint64_t HX711_read();
-static uint64_t  HX711_read_average(uint8_t times);
-static uint32_t ComplementA2toInt(uint32_t data, uint8_t bits);
+static uint64_t  HX711_readAverage(uint8_t times);
+static uint32_t complementA2toInt(uint32_t data, uint8_t bits);
+static bool_t isNegative(uint32_t data, uint8_t bits);
 
 /*******************************************************************************
  * Global private variables
  ******************************************************************************/
 static HX711_GAIN Gain;		// Amplification factor
-static uint64_t Offset;		// Used for tare weight
+static int32_t Offset;		// Used for tare weight
 static float Scale;	       	// Used to return weight in grams, kg, ounces...
 
 /*******************************************************************************
@@ -33,13 +34,13 @@ static float Scale;	       	// Used to return weight in grams, kg, ounces...
  * @details GPIO init. Set gain. Set tare
  * @return 	void
  */
-void HW_HX711_Init(void)
+void HX711_Init(void)
 {
-    HX711_init_port();
+	HX711_initPort();
 
-	HX711_set_scale(HX711_SCALE_GR);
-	HX711_set_gain(eGAIN_128);
-	HX711_set_offset(HX711_REAL_OFFSET);
+	HX711_setScale(HX711_SCALE_GR);
+	HX711_setGain(eGAIN_128);
+	HX711_setOffset(HX711_REAL_CA2_OFFSET);
 }
 
 
@@ -48,14 +49,14 @@ void HW_HX711_Init(void)
  * @details GPIO init. Set gain. Calculate and set tare (calibration)
  * @return 	void
  */
-void HW_HX711_Init_Tare(void)
+void HX711_Init_Tare(void)
 {
-    HX711_init_port();
+	HX711_initPort();
 
-	HX711_set_scale(HX711_SCALE_GR);
-	HX711_set_gain(eGAIN_128);
-	HX711_set_offset(HX711_ZERO_OFFSET);
-    HX711_tare(READINGS_TO_GET_TARE);		// Set the offset. At production time, you must hardcode the tare
+	HX711_setScale(HX711_SCALE_GR);
+	HX711_setGain(eGAIN_128);
+	HX711_setOffset(HX711_ZERO_OFFSET);
+	HX711_tare(READINGS_TO_GET_TARE);		// Set the offset. At production time, you must hardcode the tare
 }
 
 /**
@@ -65,10 +66,13 @@ void HW_HX711_Init_Tare(void)
  * @param 	HX711_GAIN gain
  * @return 	void
  */
-void HX711_set_gain(HX711_GAIN gain)
+void HX711_setGain(HX711_GAIN gain)
 {
-	Gain = gain;
-	HX711_read();		// It's necessary doing a reading to set the gain
+	if(eGAIN_128 == gain || eGAIN_32 == gain || eGAIN_64 == gain)
+	{
+		Gain = gain;
+		HX711_read();		// It's necessary doing a reading to set the gain
+	}
 }
 
 /**
@@ -77,14 +81,24 @@ void HX711_set_gain(HX711_GAIN gain)
  * @param   uint8_t times
  * @return 	Read_average() - OFFSET
  */
-uint64_t HX711_get_value(uint8_t times)
+uint32_t HX711_getValue(uint8_t times)
 {
-	uint64_t avg = 0, returnValue = 0;
+	int32_t avg = 0, counts = 0, returnValue = 0;
 
-	avg = HX711_read_average(times);
+	counts = HX711_readAverage(times);
 
-	if(avg > Offset)
-		returnValue = avg - Offset;
+	if(isNegative(counts, HX711_ADC_PRECISION))
+	{
+		avg = NEGATIVE_MASK_32_T | counts;	// Complete negative bits
+		if(avg < Offset)
+			returnValue = (Offset - avg);
+	}
+	else
+	{
+		avg = POSITIVE_MASK_32_T & counts;	// Complete positive bits
+
+		returnValue = (ADC_MAX_SATURATION - avg) + HX711_REAL_OFFSET;
+	}
 
 	return returnValue;
 }
@@ -95,9 +109,9 @@ uint64_t HX711_get_value(uint8_t times)
  * @param   uint8_t times
  * @return 	Value divided by scale
  */
-double HX711_get_units(uint8_t times)
+double HX711_getUnits(uint8_t times)
 {
-	return (BIT_MGR_CONVERTION *(HX711_get_value(times) / Scale));
+	return ((BIT_MGR_CONVERTION) *(HX711_getValue(times)/Scale));
 }
 
 /**
@@ -109,8 +123,8 @@ void HX711_tare(uint8_t times)
 {
 	uint64_t sum = 0;
 
-	sum = HX711_read_average(times);
-	HX711_set_offset(sum);
+	sum = HX711_readAverage(times);
+	HX711_setOffset(sum);
 }
 
 /**
@@ -118,16 +132,16 @@ void HX711_tare(uint8_t times)
  * @details Set the value that's subtracted from the actual reading (tare weight)
  * @param   uint64_t offset
  */
-void HX711_set_offset(uint64_t offset)
- {
-	Offset = offset;
+void HX711_setOffset(int32_t offset)
+{
+		Offset = offset;
 }
 
 /**
  * @brief   Get the current OFFSET
  * @return	Current offset
  */
-uint64_t HX711_get_offset(void)
+int32_t HX711_getOffset(void)
 {
 	return Offset;
 }
@@ -137,17 +151,18 @@ uint64_t HX711_get_offset(void)
  * @details This value is used to convert the raw data to "human readable" data (measure units)
  * @param   float scale
  */
-void HX711_set_scale(float scale )
+void HX711_setScale(float scale )
 {
-	Scale = scale;
+	if((HX711_SCALE_GR == scale) || (HX711_SCALE_KG == scale))
+		Scale = scale;
 }
 
 /**
  * @brief   Get the current SCALE
  * @return	Current scale
  */
-float HX711_get_scale()
- {
+float HX711_getScale()
+{
 	return Scale;
 }
 
@@ -155,11 +170,11 @@ float HX711_get_scale()
  * @brief   Puts the chip into power down mode
  * @details When PD_SCK pin changes from low to high and stays at high for longer than 60 us , HX711 enters power down mode
  */
-void HX711_power_down()
+void HX711_powerDown()
 {
-	HX711_CLK_set_low();
+	HX711_CLK_setLow();
 	HW711_delay(CLOCK_DELAY_US);
-	HX711_CLK_set_high();
+	HX711_CLK_setHigh();
 	HW711_delay(CLOCK_POWER_DOWN_DELAY_US);
 }
 
@@ -167,9 +182,9 @@ void HX711_power_down()
  * @brief   Wakes up the chip after power down mode
  * @details When PD_SCK returns to low, chip wakes up
  */
-void HX711_power_up()
+void HX711_powerUp()
 {
-	HX711_CLK_set_low();
+	HX711_CLK_setLow();
 }
 
 /*******************************************************************************
@@ -182,11 +197,11 @@ void HX711_power_up()
  * 			Serial clock should be low. When DOUT goes to low, it indicates data is ready for retrieval.
  * @return 	True if chip is ready, false if not.
  */
-static bool_t HX711_is_ready()
+static bool_t HX711_isReady()
 {
-	HX711_CLK_set_low();
+	HX711_CLK_setLow();
 
-	if(HX711_get_level())
+	if(HX711_getLevel())
 		return false;
 	else
 		return true;
@@ -195,47 +210,51 @@ static bool_t HX711_is_ready()
 /**
  * @brief   Get weight
  * @details Waits for the chip to be ready and returns a reading
- * @return 	Weight readed
+ * @return 	Weight read
  */
 static uint64_t HX711_read()
 {
 	uint64_t value = 0;
 	uint32_t i = 0;
 
-	HX711_CLK_set_low();
+	HX711_CLK_setLow();
 
 	// Wait for GPIO DATA low level
-	while (!HX711_is_ready())	// todo: que no sea bloqueante
+	while (!HX711_isReady() && i < (MAX_WAITING_FOR_READY/WAIT_FOR_READY_DELAY))
 	{
 		HW711_msDelay(WAIT_FOR_READY_DELAY);
+		i++;
 	}
 
-	HX711_interrupts_disable();	// Enter critical section
+	if(i >= (MAX_WAITING_FOR_READY/WAIT_FOR_READY_DELAY))	// Chip didn't answer
+		errorHandler();
+
+	HX711_interruptsDisable();	// Enter critical section
 
 	for( i = 0; i < HX711_ADC_PRECISION ; i++)
 	{
-		HX711_CLK_set_high();
+		HX711_CLK_setHigh();
 		HW711_delay(CLOCK_DELAY_US);
-        value = value << 1;
-		HX711_CLK_set_low();
-        HW711_delay(CLOCK_DELAY_US);
+		value = value << 1;
+		HX711_CLK_setLow();
+		HW711_delay(CLOCK_DELAY_US);
 
-        if(HX711_get_level())
-        	value++;
+		if(HX711_getLevel())
+			value++;
 	}
 
 	// Set the channel and the gain factor for the next reading using the clock pin
 	for ( i = 0; i < Gain; i++)
 	{
-		HX711_CLK_set_high();
+		HX711_CLK_setHigh();
 		HW711_delay(CLOCK_DELAY_US);
-		HX711_CLK_set_low();
+		HX711_CLK_setLow();
 		HW711_delay(CLOCK_DELAY_US);
 	}
 
-	HX711_interrupts_enable();	// Exit critical section
+	HX711_interruptsEnable();	// Exit critical section
 
-	value =value^0x800000;	//TODO: Comentado para prueba
+	value =value^0x800000;	// Value is in A2 complement but without sign?
 
 	return (value);
 }
@@ -247,7 +266,7 @@ static uint64_t HX711_read()
  * @param   uint8_t times
  * @return 	Average reading
  */
-static uint64_t  HX711_read_average(uint8_t times)
+static uint64_t  HX711_readAverage(uint8_t times)
 {
 	uint64_t sum = 0;
 	uint8_t i = 0;
@@ -255,28 +274,57 @@ static uint64_t  HX711_read_average(uint8_t times)
 	if(times > MAX_TIMES_ALLOWED)
 		times = MAX_TIMES_ALLOWED;
 
-	HX711_power_up();
+	//HX711_powerUp();
 
 	for (i = 0; i < times; i++)
 	{
 		sum += HX711_read();
 	}
-	HX711_power_down();
+	//HX711_powerDown();
 
-	return sum / times;
+	return (sum/times);
 }
 
-static uint32_t ComplementA2toInt(uint32_t data, uint8_t bits)
+/**
+ * @brief   Analize if a nunmber in A2 complement is a negative number
+ * @param   uint32_t data: 	A2 complement number
+ * @param	uint8_t bits:	number bits
+ * @return 	True if it's a negative number, false if not
+ */
+static bool_t isNegative(uint32_t data, uint8_t bits)
 {
-	const uint32_t negative = (data & (1 << (bits-1))) != 0;
-	uint32_t nativeInt;
+	bool_t isNegative = (data & (1 << (bits-1))) != 0;
 
-	if (negative)
-	  nativeInt = data | ~((1 << bits) - 1);
+	return isNegative;
+}
+
+/**
+ * @brief   Convert A2 complement number to integer
+ * @param   uint32_t data: 	A2 complement number
+ * @param	uint8_t bits:	number bits
+ * @return 	Converted number or -1 if an error happened
+ */
+static uint32_t complementA2toInt(uint32_t data, uint8_t bits)
+{
+	bool_t isNegativeNumber;
+	uint32_t positiveValue, returnValue;
+	uint32_t range;
+
+	isNegativeNumber = isNegative(data, bits);
+	if(bits > 32)
+	{
+		returnValue = -1;
+	}else
+	{
+	range = pow(BINARY_BASE,bits);
+
+	if (isNegativeNumber)
+		positiveValue = range - data;	// C_{A2}=2^{n}-N
 	else
-	  nativeInt = data;
+		positiveValue = data;
 
-	nativeInt = nativeInt | 0xFF000000;
+	returnValue = positiveValue;
+	}
 
-	return nativeInt;
+	return returnValue;
 }

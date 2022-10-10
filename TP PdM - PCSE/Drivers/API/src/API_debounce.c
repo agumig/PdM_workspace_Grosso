@@ -81,6 +81,7 @@ void debounceFSM_update()
 					if(!BSP_PB_GetState(BUTTON_USER))
 					{
 						currentState = BUTTON_UP;
+						fallingEdge = false;
 					}
 					else
 					{
@@ -89,7 +90,7 @@ void debounceFSM_update()
 				}
 				break;
 			default:
-				Error_Handler();
+				errorHandler();
 				break;
 			}
 }
@@ -105,7 +106,7 @@ bool_t readKeyPressed(void)
 
 	if(fallingEdge)
 	{
-		fallingEdge = false;
+		//fallingEdge = false;
 		returnValue = true;
 	}
 

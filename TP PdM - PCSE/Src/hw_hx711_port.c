@@ -17,7 +17,7 @@
  * @details GPIO init.
  * @return 	none
  */
-void HX711_init_port(void)
+void HX711_initPort(void)
 {
 	GPIO_InitTypeDef gpioConfig;
 
@@ -50,7 +50,7 @@ void HX711_init_port(void)
  * @brief   Set CLK GPIO in low level
  * @return 	none
  */
-void HX711_CLK_set_low(void)
+void HX711_CLK_setLow(void)
 {
 	HAL_GPIO_WritePin (HX711_CLK_GPIO_Port, HX711_CLK, GPIO_PIN_RESET);
 }
@@ -59,7 +59,7 @@ void HX711_CLK_set_low(void)
  * @brief   Set CLK GPIO in high level
  * @return 	none
  */
-void HX711_CLK_set_high(void)
+void HX711_CLK_setHigh(void)
 {
 	HAL_GPIO_WritePin (HX711_CLK_GPIO_Port, HX711_CLK, GPIO_PIN_SET);
 }
@@ -68,7 +68,7 @@ void HX711_CLK_set_high(void)
  * @brief   Get DATA GPIO level
  * @return 	uint8_t Data pin level
  */
-uint8_t HX711_get_level(void)
+uint8_t HX711_getLevel(void)
 {
 	return HAL_GPIO_ReadPin (HX711_DATA_GPIO_Port, HX711_DATA);
 }
@@ -97,7 +97,7 @@ void HW711_msDelay(uint16_t delay)
  * @brief   Disable interruptions
  * @return 	none
  */
-void HX711_interrupts_enable(void)
+void HX711_interruptsEnable(void)
 {
 	//portENABLE_INTERRUPTS();
 }
@@ -106,7 +106,7 @@ void HX711_interrupts_enable(void)
  * @brief   Enable interruptions
  * @return 	none
  */
-void HX711_interrupts_disable(void)
+void HX711_interruptsDisable(void)
 {
 	//portDISABLE_INTERRUPTS();
 }
