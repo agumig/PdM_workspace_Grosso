@@ -23,3 +23,16 @@ Practice 4_2:
 Practice 5:
 	- Creating a library with UART functions.
 	- Print by UART when button is pressed and released.
+	
+TP Final: "TP PdM - PCSE"
+Control of reservoir contents.
+	- Nucleo F429ZI.
+	- Finit state machine:
+		- State IDLE
+		- State FILL
+		- State EROGATION
+	- HX711: 	wheatstone bridge + 24-bits ADC.
+	- Timer:	[us] for HX711 clock.
+	- UART:	simulating turn-off and turn-on of pumps and valves.
+	- Button-User:	of NUCLEO.
+	
